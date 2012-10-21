@@ -48,7 +48,7 @@ public class ConquerThePathGame {
 	}
 	//Randomly selects a path from (0,0) to (dimension,dimension)
 	public void formPath(int x, int y){
-		if(x==0 && y==0){
+		if(x==0 || y==0){
 			path.add(board[x][y]);
 			board[x][y].setPath(true);
 			return;
@@ -63,18 +63,19 @@ public class ConquerThePathGame {
 		}
 		else{
 			path.add(board[x][y-1]);
-			board[y-1][x].setPath(true);
+			board[x][y-1].setPath(true);
 			formPath(x,y-1);
 		}	
 	}
 	//Set the game
 	public void initialize(){
+		path = new ArrayList<Territory>();
 		for(int i=0;i<board.length;i++){
 			for(int j=0;j<board.length;j++){
 				board[i][j] = new Territory();
 			}
 		}
-		this.formPath(board.length,board.length);
+		this.formPath(board.length-1,board.length-1);
 		path.add(board[board.length-1][board.length-1]);
 		board[board.length-1][board.length-1].setPath(true);
 		this.setTerritoryDies();
