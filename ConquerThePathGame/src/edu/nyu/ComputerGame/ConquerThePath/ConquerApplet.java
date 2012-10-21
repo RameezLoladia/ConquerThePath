@@ -5,6 +5,8 @@ import simpleGamePlatform.*;
 
 public class ConquerApplet extends GamePlatform
 {
+    ConquerThePathGame game;
+
     int dimX, dimY, sqX, sqY;
 
     static final int XMARGIN = 100;
@@ -12,7 +14,11 @@ public class ConquerApplet extends GamePlatform
 
     public void init() {
         dimX = 10;
-        dimY = 10;
+        dimY = dimX;
+
+        // bring up the backend
+        game = new ConquerThePathGame(dimX);
+        game.initialize();
     }
 
     public void overlay(Graphics g) {
@@ -26,7 +32,14 @@ public class ConquerApplet extends GamePlatform
         // fill squares
         for (int y = 0; y < dimY; y++) {
             for (int x = 0; x < dimX; x++) {
-                g.setColor(new Color(x*1.0f/dimX, y*1.0f/dimY, 0.5f));
+
+                // show which territories are on the path via getTerritory(row,col)
+                if (game.getTerritory(y,x).isPath()) {
+                    g.setColor(Color.yellow);
+                } else {
+                    g.setColor(Color.green);
+                }
+
                 g.fillRect(XMARGIN+x*sqX,YMARGIN+y*sqY, sqX,sqY);
             }
         }
