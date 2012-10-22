@@ -51,7 +51,7 @@ public class ConquerApplet extends GamePlatform
         grass = toolkit.getImage("64x64grass.gif");
         playerFlag = toolkit.getImage("32x32redflag.gif");
         computerFlag = toolkit.getImage("32x32yellowflag.gif");
-        pathImg = toolkit.getImage("32x32pathH.gif");
+        pathImg = toolkit.getImage("32x32path.gif");
         tracker.addImage(grass, 0);
         tracker.addImage(playerFlag, 1);
         tracker.addImage(computerFlag, 2);
@@ -78,10 +78,41 @@ public class ConquerApplet extends GamePlatform
 
                 // check if this territory is on the path
                 if (t.isPath()) {
-                    g.drawImage(pathImg, pXmin(x), pYmin(y), 32, 32, this);
-                }
+                    Territory above = (y==0?null: game.getTerritory(y-1,x));
+                    Territory below = (y==dimY-1?null: game.getTerritory(y+1,x));
+                    Territory left  = (x==0?null: game.getTerritory(y,x-1));
+                    Territory right = (x==dimX-1?null: game.getTerritory(y,x+1));
 
-                //g.fillRect(pXmin(x),pYmin(y), sqX, sqY);
+                    int idx = ((above!=null && above.isPath())?1 : 0) |
+                              ((below!=null && below.isPath())?2 : 0) |
+                              ((left !=null && left .isPath())?4 : 0) |
+                              ((right!=null && right.isPath())?8 : 0);
+
+                    int sx=0, sy=0;
+                    // decide how to draw path
+                    if ((idx & 3) == 3 || idx == 1 || idx == 2) {
+                        // vertical
+                        sx = 1;
+                    } else if ((idx & 12) == 12 || idx == 4 || idx == 8) {
+                        // horizontal
+                        sx = 0;
+                    } else if ((idx & 5) == 5) {
+                        // above&left: lower right
+                        sx = 4;
+                    } else if ((idx & 9) == 9) {
+                        // above&right: lower left
+                        sx = 5;
+                    } else if ((idx & 6) == 6) {
+                        // below&left: upper right
+                        sx = 3;
+                    } else if ((idx & 10) == 10) {
+                        // below&rigt: upper left
+                        sx = 2;
+                    }
+
+                    sx *= 32;
+                    g.drawImage(pathImg, pXmin(x), pYmin(y), pXmax(x), pYmax(y), sx, sy, sx+32, sy+32, this);
+                }
 
                 // draw territory ownership & dice info
 
