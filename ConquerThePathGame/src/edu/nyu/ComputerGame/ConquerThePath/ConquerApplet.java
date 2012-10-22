@@ -8,6 +8,7 @@ public class ConquerApplet extends GamePlatform
     ConquerThePathGame game;
 
     Font infoFont;
+    Image grass, playerFlag, computerFlag, pathImg;
 
     int dimX, dimY, sqX, sqY;
     int mouseOverX, mouseOverY;
@@ -29,6 +30,12 @@ public class ConquerApplet extends GamePlatform
     public void init() {
         dimX = 10;
         dimY = dimX;
+        sqX = 32;
+        sqY = 32;
+
+        // make sure it's square
+        if (sqX < sqY) sqY = sqX;
+        else if (sqY < sqX) sqX = sqY;
 
         mouseOverX = mouseOverY = -1;
 
@@ -36,47 +43,63 @@ public class ConquerApplet extends GamePlatform
         game = new ConquerThePathGame(dimX);
         game.initialize();
 
-        infoFont = new Font("Monospaced", Font.PLAIN, 12);
+        infoFont = new Font("Serif", Font.PLAIN, 12);
 
+        // load images
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        MediaTracker tracker = new MediaTracker(this);
+        grass = toolkit.getImage("64x64grass.gif");
+        playerFlag = toolkit.getImage("32x32redflag.gif");
+        computerFlag = toolkit.getImage("32x32yellowflag.gif");
+        pathImg = toolkit.getImage("32x32pathH.gif");
+        tracker.addImage(grass, 0);
+        tracker.addImage(playerFlag, 1);
+        tracker.addImage(computerFlag, 2);
+        tracker.addImage(pathImg, 3);
+        try {
+            tracker.waitForAll();
+        }
+        catch (InterruptedException e) {
+            System.err.println("Load Interrupted: "+e);
+        }
+
+        //
         selectMode = ATTACKER_MODE;
     }
 
     public void overlay(Graphics g) {
-        sqX = (getWidth()-(XMARGIN*2))/dimX;
-        sqY = (getHeight()-(YMARGIN*2))/dimY;
-
-        // make sure it's square
-        if (sqX < sqY) sqY = sqX;
-        else if (sqY < sqX) sqX = sqY;
-
         // fill squares
         for (int y = 0; y < dimY; y++) {
             for (int x = 0; x < dimX; x++) {
                 Territory t = game.getTerritory(y,x);
+
+                g.drawImage(grass, pXmin(x), pYmin(y), pXmax(x), pYmax(y),
+                                   (x%2)*32,(y%2)*32,(x%2+1)*32,(y%2+1)*32,this);
+
                 // check if this territory is on the path
                 if (t.isPath()) {
-                    g.setColor(Color.yellow);
-                } else {
-                    g.setColor(Color.green);
+                    g.drawImage(pathImg, pXmin(x), pYmin(y), 32, 32, this);
                 }
 
-                g.fillRect(pXmin(x),pYmin(y), sqX, sqY);
+                //g.fillRect(pXmin(x),pYmin(y), sqX, sqY);
 
                 // draw territory ownership & dice info
-                g.setColor(Color.black);
-                g.drawString(""+t.getNoOfDies(), pXmin(x), pYmin(y)+15);
 
                 switch (t.getOwner()) {
                     case GamePlayer:
-                        g.drawString("*", pXmin(x), pYmin(y)+30);
+                        g.drawImage(playerFlag, pXmin(x), pYmin(y), 32, 32, this);
                         break;
                     case OtherPlayer:
                         // neutral, draw nothing
                         break;
                     case ComputerPlayer:
-                        g.drawString("Enemy", pXmin(x), pYmin(y)+30);
+                        g.drawImage(computerFlag, pXmin(x), pYmin(y), 32, 32, this);
                         break;
                 }
+
+                g.setColor(Color.darkGray);
+                g.setFont(infoFont);
+                g.drawString(""+t.getNoOfDies(), pXmin(x)+2, pYmin(y)+15);
             }
         }
 
@@ -179,10 +202,12 @@ public class ConquerApplet extends GamePlatform
     public void selectAt(int gx, int gy) {
         switch (selectMode) {
             case ATTACKER_MODE:
-                attackerX = gx;
-                attackerY = gy;
+                if (game.getTerritory(gy,gx).getOwner() == Player.GamePlayer) {
+                    attackerX = gx;
+                    attackerY = gy;
+                    selectMode = ATTACKEE_MODE;
+                }
 
-                selectMode = ATTACKEE_MODE;
                 break;
             case ATTACKEE_MODE:
                 if (game.validateAttack(attackerX, attackerY, gx, gy)) {
