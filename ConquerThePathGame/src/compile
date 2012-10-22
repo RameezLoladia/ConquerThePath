@@ -1,1 +1,3 @@
+#!/bin/sh
+
 javac edu/nyu/ComputerGame/ConquerThePath/*.java simpleGamePlatform/*.java
