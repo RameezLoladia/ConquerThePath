@@ -7,6 +7,8 @@ public class ConquerApplet extends GamePlatform
 {
     ConquerThePathGame game;
 
+    Font infoFont;
+
     int dimX, dimY, sqX, sqY;
     int mouseOverX, mouseOverY;
 
@@ -16,13 +18,14 @@ public class ConquerApplet extends GamePlatform
     static final int XMARGIN = 50;
     static final int YMARGIN = 50;
 
-    // interface modes:
+    // interface modes
     int selectMode;
 
     static final int ATTACKER_MODE = 1; // player selects a territory that attacks
     static final int ATTACKEE_MODE = 2; // player selects a territory to attack
     static final int BATTLE_MODE = 3; // battle animation
 
+    //
     public void init() {
         dimX = 10;
         dimY = dimX;
@@ -32,6 +35,8 @@ public class ConquerApplet extends GamePlatform
         // bring up the backend
         game = new ConquerThePathGame(dimX);
         game.initialize();
+
+        infoFont = new Font("Monospaced", Font.PLAIN, 12);
 
         selectMode = ATTACKER_MODE;
     }
@@ -47,14 +52,31 @@ public class ConquerApplet extends GamePlatform
         // fill squares
         for (int y = 0; y < dimY; y++) {
             for (int x = 0; x < dimX; x++) {
+                Territory t = game.getTerritory(y,x);
                 // check if this territory is on the path
-                if (game.getTerritory(y,x).isPath()) {
+                if (t.isPath()) {
                     g.setColor(Color.yellow);
                 } else {
                     g.setColor(Color.green);
                 }
 
-                g.fillRect(pXmin(x),pYmin(y), sqX,sqY);
+                g.fillRect(pXmin(x),pYmin(y), sqX, sqY);
+
+                // draw territory ownership & dice info
+                g.setColor(Color.black);
+                g.drawString(""+t.getNoOfDies(), pXmin(x), pYmin(y)+15);
+
+                switch (t.getOwner()) {
+                    case GamePlayer:
+                        g.drawString("*", pXmin(x), pYmin(y)+30);
+                        break;
+                    case OtherPlayer:
+                        // neutral, draw nothing
+                        break;
+                    case ComputerPlayer:
+                        g.drawString("Enemy", pXmin(x), pYmin(y)+30);
+                        break;
+                }
             }
         }
 
@@ -71,20 +93,35 @@ public class ConquerApplet extends GamePlatform
             g.drawLine(xc, YMARGIN, xc, YMARGIN + dimY*sqY);
         }
 
-        if (selectMode == ATTACKEE_MODE) {
-            // draw attacker
-            g.setColor(Color.red);
+        switch (selectMode) {
+            case ATTACKER_MODE:
+                // draw mouseover cursor for attacker
+                if (mouseOverX != -1 && mouseOverY != -1 && game.getTerritory(mouseOverY,mouseOverX).getOwner() == Player.GamePlayer) {
+                    g.setColor(Color.red);
 
-            drawThickRect(g, pXmin(attackerX), pYmin(attackerY), sqX, sqY, 4);
-        }
-        else if (selectMode == BATTLE_MODE) {
-        }
+                    drawThickRect(g, pXmin(mouseOverX), pYmin(mouseOverY), sqX, sqY, 3);
+                }
+                break;
+            case ATTACKEE_MODE:
+                // draw attacker
+                g.setColor(Color.red);
 
-        // draw mouseover cursor
-        if (mouseOverX != -1 && mouseOverY != -1) {
-            g.setColor(Color.black);
+                drawThickRect(g, pXmin(attackerX), pYmin(attackerY), sqX, sqY, 4);
 
-            g.drawOval(pXmin(mouseOverX), pYmin(mouseOverY), sqX, sqY);
+                // draw mouseover cursor for attackee
+                if (mouseOverX != -1 && mouseOverY != -1) {
+                    Territory t = game.getTerritory(mouseOverY,mouseOverX);
+                    
+                    if (t.getOwner() != Player.GamePlayer && game.validateAttack(attackerY,attackerX,mouseOverY,mouseOverX)) {
+                        g.setColor(Color.black);
+                        g.drawOval(pXmin(mouseOverX), pYmin(mouseOverY), sqX, sqY);
+                    }
+                }
+                break;
+            case BATTLE_MODE:
+                // immediately end
+                selectMode = ATTACKER_MODE;
+                break;
         }
 
     }
@@ -153,13 +190,14 @@ public class ConquerApplet extends GamePlatform
                     attackeeY = gy;
 
                     // do the attack
-                    game.attack(attackerX, attackerY, attackeeX, attackeeY);
+                    game.attack(attackerY, attackerX, attackeeY, attackeeX);
 
                     selectMode = BATTLE_MODE;
                 }
                 break;
             case BATTLE_MODE:
                 // ignore clicks
+
                 break;
         }
     }
