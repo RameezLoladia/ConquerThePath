@@ -15,7 +15,6 @@ public class ConquerApplet extends GamePlatform
 
     int attackerX, attackerY;
     int attackeeX, attackeeY;
-    Territory attackerT, attackeeT;
 
     static final int XMARGIN = 50;
     static final int YMARGIN = 50;
@@ -202,8 +201,6 @@ public class ConquerApplet extends GamePlatform
                 if (animT >= 2+diceTime+6)
                 {
                     battleResults = null;
-                    attackerT = null;
-                    attackeeT = null;
 
                     // quick check for game end 
                     if (game.isWon()) {
@@ -468,8 +465,6 @@ public class ConquerApplet extends GamePlatform
                     {
                         Territory t0 = game.getTerritory(attackerY, attackerX);
                         Territory t1 = game.getTerritory(attackeeY, attackeeX);
-                        attackerT = new Territory(t0.isPath(), t0.getOwner(), t0.getNoOfDies());
-                        attackeeT = new Territory(t1.isPath(), t1.getOwner(), t1.getNoOfDies());
                         diceTime = Math.max(t0.getNoOfDies(), t1.getNoOfDies())*DICE_APPEAR_TIME;
 
                         java.util.ArrayList<Integer> al0 = game.rollDies(attackerY, attackerX);
