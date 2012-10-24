@@ -1,6 +1,8 @@
 package edu.nyu.ComputerGame.ConquerThePath;
 
 import java.util.ArrayList;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.awt.*;
 import simpleGamePlatform.*;
 
@@ -63,12 +65,19 @@ public class ConquerApplet extends GamePlatform
         winFont = new Font("Sans Serif", Font.BOLD, 24);
 
         // load images
+        String imgPath="http://gashlin.net/games/cg12/ConquerThePath/";
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         MediaTracker tracker = new MediaTracker(this);
-        grass = toolkit.getImage("64x64grass.gif");
-        playerFlag = toolkit.getImage("32x32redflag.gif");
-        computerFlag = toolkit.getImage("32x32yellowflag.gif");
-        pathImg = toolkit.getImage("32x32path.gif");
+        try {
+            grass = toolkit.createImage(new URL(imgPath+"64x64grass.gif"));
+            playerFlag = toolkit.createImage(new URL(imgPath+"32x32redflag.gif"));
+            computerFlag = toolkit.createImage(new URL(imgPath+"32x32yellowflag.gif"));
+            pathImg = toolkit.createImage(new URL(imgPath+"32x32path.gif"));
+        }
+        catch (MalformedURLException e) {
+            System.err.println("MalformedURLException: " + e);
+        }
+
         tracker.addImage(grass, 0);
         tracker.addImage(playerFlag, 1);
         tracker.addImage(computerFlag, 2);
@@ -78,6 +87,10 @@ public class ConquerApplet extends GamePlatform
         }
         catch (InterruptedException e) {
             System.err.println("Load Interrupted: "+e);
+        }
+
+        if (tracker.isErrorAny()) {
+            System.err.println("some error loading images");
         }
 
         //
