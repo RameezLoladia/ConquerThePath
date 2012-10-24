@@ -124,8 +124,9 @@ public class ConquerThePathGame {
 				
 		}
 		//Redistribution of dies
-		board[row1][col1].setNoOfDies((board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2);
-		board[row2][col2].setNoOfDies((board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2);
+		int split=(board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2;
+		board[row1][col1].setNoOfDies(split);
+		board[row2][col2].setNoOfDies(split);
 	}
 	
 	// Returns a list of die roll output
