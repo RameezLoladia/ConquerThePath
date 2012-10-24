@@ -25,7 +25,8 @@ public class ConquerApplet extends GamePlatform
 
     static final int ATTACKER_MODE = 1; // player selects a territory that attacks
     static final int ATTACKEE_MODE = 2; // player selects a territory to attack
-    static final int BATTLE_MODE = 3; // battle animation
+    static final int BATTLE_MODE = 3;   // battle animation
+    static final int WON_MODE = 4;      // win screen
 
     double animT;   // battle animation timer
     double diceTime;
@@ -203,10 +204,25 @@ public class ConquerApplet extends GamePlatform
                     battleResults = null;
                     attackerT = null;
                     attackeeT = null;
-                    selectMode = ATTACKER_MODE;
+
+                    // quick check for game end 
+                    if (game.isWon()) {
+                        selectMode = WON_MODE;
+                    }
+                    else {
+                        selectMode = ATTACKER_MODE;
+                    }
                 }
 
                 animT += 0.1;
+                break;
+
+            case WON_MODE:
+                drawBoard(g);
+
+                g.setColor(Color.green);
+                g.setFont(new Font("Sans Serif", Font.BOLD, 24));
+                g.drawString("You Win!", 140, 30);
                 break;
         }
 
@@ -473,6 +489,9 @@ public class ConquerApplet extends GamePlatform
             case BATTLE_MODE:
                 // ignore clicks
 
+                break;
+            case WON_MODE:
+                // TODO: click should reset game
                 break;
         }
     }
