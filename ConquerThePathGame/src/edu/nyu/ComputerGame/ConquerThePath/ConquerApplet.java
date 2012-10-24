@@ -1,5 +1,6 @@
 package edu.nyu.ComputerGame.ConquerThePath;
 
+import java.util.ArrayList;
 import java.awt.*;
 import simpleGamePlatform.*;
 
@@ -31,7 +32,7 @@ public class ConquerApplet extends GamePlatform
     double diceTime;
     static final double BATTLE_ZOOM = 6.5;
     static final double DICE_APPEAR_TIME = 0.7;
-    Integer [][] battleResults;
+    ArrayList<Integer> battleResults0, battleResults1;
     boolean didAttack;
 
     //
@@ -73,7 +74,8 @@ public class ConquerApplet extends GamePlatform
         }
 
         //
-        battleResults = null;
+        battleResults0 = null;
+        battleResults1 = null;
         selectMode = ATTACKER_MODE;
     }
 
@@ -147,7 +149,7 @@ public class ConquerApplet extends GamePlatform
                         diceT = (animT-2)/DICE_APPEAR_TIME;
 
                     } else if (animT >= 2+diceTime && animT < 2+diceTime+4) {
-                        diceT = Math.max(battleResults[0].length, battleResults[1].length);
+                        diceT = Math.max(battleResults0.size(), battleResults1.size());
                     } else {
                         diceT = -1;
                     }
@@ -160,8 +162,8 @@ public class ConquerApplet extends GamePlatform
                         double spacing;
                         x = trans[0]+pXmin(attackerX);
                         y = trans[1]+pYmin(attackerY);
-                        spacing = 32*BATTLE_ZOOM/(battleResults[0].length+1);
-                        for (int i = 0; i <= diceT && i < battleResults[0].length; i++) {
+                        spacing = 32*BATTLE_ZOOM/(battleResults0.size()+1);
+                        for (int i = 0; i <= diceT && i < battleResults0.size(); i++) {
                             int x2=x, y2=y;
                             if (frontHorizontal) {
                                 x2 += (i+1)*spacing;
@@ -170,14 +172,14 @@ public class ConquerApplet extends GamePlatform
                                 y2 += (i+1)*spacing;
                                 x2 += BATTLE_ZOOM*32/2;
                             }
-                            drawDie(g, x2, y2, battleResults[0][i]);
+                            drawDie(g, x2, y2, battleResults0.get(i));
                         }
 
                         // attackee's dice
                         x = trans[2]+pXmin(attackeeX);
                         y = trans[3]+pYmin(attackeeY);
-                        spacing = 32*BATTLE_ZOOM/(battleResults[1].length+1);
-                        for (int i = 0; i <= diceT && i < battleResults[1].length; i++) {
+                        spacing = 32*BATTLE_ZOOM/(battleResults1.size()+1);
+                        for (int i = 0; i <= diceT && i < battleResults1.size(); i++) {
                             int x2=x, y2=y;
                             if (frontHorizontal) {
                                 x2 += (i+1)*spacing;
@@ -186,14 +188,14 @@ public class ConquerApplet extends GamePlatform
                                 y2 += (i+1)*spacing;
                                 x2 += BATTLE_ZOOM*32/2;
                             }
-                            drawDie(g, x2, y2, battleResults[1][i]);
+                            drawDie(g, x2, y2, battleResults1.get(i));
                         }
                     }   // end if draw dice
 
                     if (animT >= 2+diceTime+2) {
                         // really do the battle!
                         if (!didAttack) {
-                            game.attack(attackerY, attackerX, attackeeY, attackeeX);
+                            game.attack(attackerY, attackerX, attackeeY, attackeeX, battleResults0, battleResults1);
                             didAttack = true;
                         }
                     }
@@ -201,7 +203,8 @@ public class ConquerApplet extends GamePlatform
 
                 if (animT >= 2+diceTime+6)
                 {
-                    battleResults = null;
+                    battleResults0 = null;
+                    battleResults1 = null;
 
                     // quick check for game end 
                     if (game.isWon()) {
@@ -468,16 +471,9 @@ public class ConquerApplet extends GamePlatform
                         Territory t1 = game.getTerritory(attackeeY, attackeeX);
                         diceTime = Math.max(t0.getNoOfDies(), t1.getNoOfDies())*DICE_APPEAR_TIME;
 
-                        java.util.ArrayList<Integer> al0 = game.rollDies(attackerY, attackerX);
-                        java.util.ArrayList<Integer> al1 = game.rollDies(attackeeY, attackeeX);
+                        battleResults0 = game.rollDies(attackerY, attackerX);
+                        battleResults1 = game.rollDies(attackeeY, attackeeX);
                         
-                        battleResults = new Integer[2][];
-                        battleResults[0] = new Integer[al0.size()];
-                        battleResults[1] = new Integer[al1.size()];
-
-                        battleResults[0] = al0.toArray(battleResults[0]);
-                        battleResults[1] = al1.toArray(battleResults[1]);
-
                         didAttack = false;
                     }
                 }
