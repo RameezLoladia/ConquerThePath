@@ -25,9 +25,9 @@ public class ConquerThePathGame {
 		for(int i=0;i<board.length;i++){
 			for(int j=0;j<board[0].length;j++){
 				int r= new Random().nextInt(100)%2;
-				if(r==0)
-					board[i][j].setOwner(Player.ComputerPlayer);
-				else
+				//if(r==0)
+				//	board[i][j].setOwner(Player.ComputerPlayer);
+				//else
 					board[i][j].setOwner(Player.OtherPlayer);
 
 			}
