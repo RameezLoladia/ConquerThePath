@@ -8,7 +8,7 @@ public class ConquerApplet extends GamePlatform
 {
     ConquerThePathGame game;
 
-    Font infoFont, winFont;
+    Font infoFont, battleFont, winFont;
     Image grass, playerFlag, computerFlag, pathImg;
 
     int dimX, dimY, sqX, sqY;
@@ -32,6 +32,12 @@ public class ConquerApplet extends GamePlatform
     double diceTime;
     static final double BATTLE_ZOOM = 6.5;
     static final double DICE_APPEAR_TIME = 0.7;
+
+    // timing of animation stages
+    static final double ZOOM_TIME = 2;
+    static final double PRE_BATTLE_TIME = 2;
+    static final double POST_BATTLE_TIME = 4;
+
     ArrayList<Integer> battleResults0, battleResults1;
     boolean didAttack;
 
@@ -53,6 +59,7 @@ public class ConquerApplet extends GamePlatform
         game.initialize();
 
         infoFont = new Font("Serif", Font.PLAIN, 12);
+        battleFont = new Font("Monospace", Font.BOLD, 24);
         winFont = new Font("Sans Serif", Font.BOLD, 24);
 
         // load images
@@ -116,14 +123,14 @@ public class ConquerApplet extends GamePlatform
 
                     drawBoard(g);
 
-                    if (animT <= 2) {
-                        zoomT = animT/2;
+                    if (animT <= ZOOM_TIME) {
+                        zoomT = animT/ZOOM_TIME;
                     }
-                    else if (animT > 2 && animT < 2+diceTime+4) {
+                    else if (animT > ZOOM_TIME && animT < ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME) {
                         zoomT = 1.0;
                     }
-                    else if (animT >= 2+diceTime+4 && animT < 2+diceTime+6) {
-                        zoomT = 1-((animT-(2+diceTime+4))/2);
+                    else if (animT >= ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME && animT < ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME+ZOOM_TIME) {
+                        zoomT = 1-((animT-(ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME))/ZOOM_TIME);
                     }
                     else {
                         zoomT = -1;
@@ -145,10 +152,10 @@ public class ConquerApplet extends GamePlatform
                         g.translate(-trans[2], -trans[3]);
                     }
 
-                    if (animT >= 2 && animT < 2+diceTime) {
-                        diceT = (animT-2)/DICE_APPEAR_TIME;
+                    if (animT >= ZOOM_TIME && animT < ZOOM_TIME+diceTime) {
+                        diceT = (animT-ZOOM_TIME)/DICE_APPEAR_TIME;
 
-                    } else if (animT >= 2+diceTime && animT < 2+diceTime+4) {
+                    } else if (animT >= ZOOM_TIME+diceTime && animT < ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME) {
                         diceT = Math.max(battleResults0.size(), battleResults1.size());
                     } else {
                         diceT = -1;
@@ -160,6 +167,8 @@ public class ConquerApplet extends GamePlatform
                         // attacker's dice
                         int x,y;
                         double spacing;
+                        int total = 0;
+                        int zoomedCtr = (int)BATTLE_ZOOM*32/2;
                         x = trans[0]+pXmin(attackerX);
                         y = trans[1]+pYmin(attackerY);
                         spacing = 32*BATTLE_ZOOM/(battleResults0.size()+1);
@@ -167,32 +176,49 @@ public class ConquerApplet extends GamePlatform
                             int x2=x, y2=y;
                             if (frontHorizontal) {
                                 x2 += (i+1)*spacing;
-                                y2 += BATTLE_ZOOM*32/2;
+                                y2 += zoomedCtr;
                             } else {
                                 y2 += (i+1)*spacing;
-                                x2 += BATTLE_ZOOM*32/2;
+                                x2 += zoomedCtr;
                             }
                             drawDie(g, x2, y2, battleResults0.get(i));
+                            total += battleResults0.get(i);
+                        }
+                        g.setFont(battleFont);
+                        g.setColor(Color.black);
+                        if (frontHorizontal) {
+                            g.drawString(""+total, x + zoomedCtr, y + zoomedCtr - 8);
+                        } else {
+                            g.drawString(""+total, x + zoomedCtr - 16, y + zoomedCtr);
                         }
 
                         // attackee's dice
                         x = trans[2]+pXmin(attackeeX);
                         y = trans[3]+pYmin(attackeeY);
                         spacing = 32*BATTLE_ZOOM/(battleResults1.size()+1);
+                        total = 0;
                         for (int i = 0; i <= diceT && i < battleResults1.size(); i++) {
                             int x2=x, y2=y;
                             if (frontHorizontal) {
                                 x2 += (i+1)*spacing;
-                                y2 += BATTLE_ZOOM*32/2;
+                                y2 += zoomedCtr;
                             } else {
                                 y2 += (i+1)*spacing;
-                                x2 += BATTLE_ZOOM*32/2;
+                                x2 += zoomedCtr;
                             }
                             drawDie(g, x2, y2, battleResults1.get(i));
+                            total += battleResults1.get(i);
+                        }
+                        g.setFont(battleFont);
+                        g.setColor(Color.black);
+                        if (frontHorizontal) {
+                            g.drawString(""+total, x + zoomedCtr, y + zoomedCtr - 8);
+                        } else {
+                            g.drawString(""+total, x + zoomedCtr - 16, y + zoomedCtr);
                         }
                     }   // end if draw dice
 
-                    if (animT >= 2+diceTime+2) {
+                    if (animT >= ZOOM_TIME+diceTime+PRE_BATTLE_TIME) {
                         // really do the battle!
                         if (!didAttack) {
                             game.attack(attackerY, attackerX, attackeeY, attackeeX, battleResults0, battleResults1);
@@ -201,7 +227,7 @@ public class ConquerApplet extends GamePlatform
                     }
                 }
 
-                if (animT >= 2+diceTime+6)
+                if (animT >= ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME+ZOOM_TIME)
                 {
                     battleResults0 = null;
                     battleResults1 = null;
@@ -479,8 +505,8 @@ public class ConquerApplet extends GamePlatform
                 }
                 break;
             case BATTLE_MODE:
-                // ignore clicks
-
+                // skip animation
+                animT = ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME+ZOOM_TIME+1;
                 break;
             case WON_MODE:
                 // TODO: click should reset game
