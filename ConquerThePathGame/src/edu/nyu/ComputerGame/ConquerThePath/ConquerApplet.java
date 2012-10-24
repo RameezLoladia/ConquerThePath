@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.awt.*;
+import javax.sound.sampled.*;
 import simpleGamePlatform.*;
 
 public class ConquerApplet extends GamePlatform
@@ -12,6 +13,7 @@ public class ConquerApplet extends GamePlatform
 
     Font infoFont, battleFont, winFont;
     Image grass, playerFlag, computerFlag, pathImg;
+    Clip attackClip, diceClip, battleWinClip, battleLoseClip, winClip;
 
     int dimX, dimY, sqX, sqY;
     int mouseOverX, mouseOverY;
@@ -41,7 +43,7 @@ public class ConquerApplet extends GamePlatform
     static final double POST_BATTLE_TIME = 4;
 
     ArrayList<Integer> battleResults0, battleResults1;
-    boolean didAttack;
+    boolean didAttack, diceStarted, didBattleResult;
 
     //
     public void init() {
@@ -65,7 +67,9 @@ public class ConquerApplet extends GamePlatform
         winFont = new Font("Sans Serif", Font.BOLD, 24);
 
         // load images
-        String imgPath="http://gashlin.net/games/cg12/ConquerThePath/";
+        String mainPath="http://gashlin.net/games/cg12/ConquerThePath/";
+        String imgPath=new String(mainPath);
+        String soundPath=mainPath+"sounds/";
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         MediaTracker tracker = new MediaTracker(this);
         try {
@@ -75,9 +79,10 @@ public class ConquerApplet extends GamePlatform
             pathImg = toolkit.createImage(new URL(imgPath+"32x32path.gif"));
         }
         catch (MalformedURLException e) {
-            System.err.println("MalformedURLException: " + e);
+            e.printStackTrace();
         }
 
+        // load images
         tracker.addImage(grass, 0);
         tracker.addImage(playerFlag, 1);
         tracker.addImage(computerFlag, 2);
@@ -86,11 +91,23 @@ public class ConquerApplet extends GamePlatform
             tracker.waitForAll();
         }
         catch (InterruptedException e) {
-            System.err.println("Load Interrupted: "+e);
+            e.printStackTrace();
         }
 
         if (tracker.isErrorAny()) {
             System.err.println("some error loading images");
+        }
+
+        // load sounds
+        try {
+            attackClip = loadSound(soundPath+"attack_edit.au");
+            diceClip = loadSound(soundPath+"dice_edit.au");
+            battleWinClip = loadSound(soundPath+"battlewin_edit16.au");
+            battleLoseClip = loadSound(soundPath+"battlelose_edit.au");
+            winClip = loadSound(soundPath+"win_edit.au");
+        }
+        catch (MalformedURLException e) {
+            e.printStackTrace();
         }
 
         //
@@ -144,6 +161,24 @@ public class ConquerApplet extends GamePlatform
                     }
                     else if (animT >= ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME && animT < ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME+ZOOM_TIME) {
                         zoomT = 1-((animT-(ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME))/ZOOM_TIME);
+
+                        if (!didBattleResult) {
+                            didBattleResult = true;
+                            if (game.getTerritory(attackeeY, attackeeX).getOwner() == Player.GamePlayer) {
+                                // player won
+                                battleWinClip.stop();
+                                battleWinClip.setFramePosition(0);
+                                battleWinClip.start();
+                            }
+                            else
+                            {
+                                // player lost
+                                battleLoseClip.stop();
+                                battleLoseClip.setFramePosition(0);
+                                battleLoseClip.start();
+                            }
+                        }
+
                     }
                     else {
                         zoomT = -1;
@@ -166,6 +201,12 @@ public class ConquerApplet extends GamePlatform
                     }
 
                     if (animT >= ZOOM_TIME && animT < ZOOM_TIME+diceTime) {
+                        if (!diceStarted) {
+                            diceClip.stop();
+                            diceClip.setFramePosition(0);
+                            diceClip.start();
+                            diceStarted = true;
+                        }
                         diceT = (animT-ZOOM_TIME)/DICE_APPEAR_TIME;
 
                     } else if (animT >= ZOOM_TIME+diceTime && animT < ZOOM_TIME+diceTime+PRE_BATTLE_TIME+POST_BATTLE_TIME) {
@@ -236,6 +277,9 @@ public class ConquerApplet extends GamePlatform
                         if (!didAttack) {
                             game.attack(attackerY, attackerX, attackeeY, attackeeX, battleResults0, battleResults1);
                             didAttack = true;
+                            attackClip.stop();
+                            attackClip.setFramePosition(0);
+                            attackClip.start();
                         }
                     }
                 }
@@ -248,6 +292,9 @@ public class ConquerApplet extends GamePlatform
                     // quick check for game end 
                     if (game.isWon()) {
                         selectMode = WON_MODE;
+                        winClip.stop();
+                        winClip.setFramePosition(0);
+                        winClip.start();
                     }
                     else {
                         selectMode = ATTACKER_MODE;
@@ -515,6 +562,8 @@ public class ConquerApplet extends GamePlatform
                         battleResults1 = game.rollDies(attackeeY, attackeeX);
                         
                         didAttack = false;
+                        diceStarted = false;
+                        didBattleResult = false;
                     }
                 }
                 break;
@@ -585,6 +634,19 @@ public class ConquerApplet extends GamePlatform
         }
 
         return true;
+    }
+
+    Clip loadSound(String url) throws MalformedURLException {
+        Clip clip = null;
+        try {
+            clip = AudioSystem.getClip();
+            clip.open(AudioSystem.getAudioInputStream(new URL(url)));
+        }
+        catch (Exception e) {
+            System.err.println("error on " + url);
+            e.printStackTrace();
+        }
+        return clip;
     }
 
 }
