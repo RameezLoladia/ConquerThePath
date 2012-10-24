@@ -94,7 +94,7 @@ public class ConquerThePathGame {
 	// Validates a attack that it can be carried only on adjacent 4 cells i.e 4 connectivity
 	public boolean validateAttack(int row1,int col1,int row2,int col2){
 		double d = Math.sqrt(Math.pow(row1-row2,2)+Math.pow(col1-col2, 2));
-		if(d>1){
+		if(d>1 || board[row1][col1].getOwner() == board[row2][col2].getOwner()){
 			return false;
 		}
 		else{

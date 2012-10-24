@@ -458,7 +458,7 @@ public class ConquerApplet extends GamePlatform
 
                 break;
             case ATTACKEE_MODE:
-                if (game.validateAttack(attackerX, attackerY, gx, gy)) {
+                if (game.validateAttack(attackerY, attackerX, gy, gx)) {
                     attackeeX = gx;
                     attackeeY = gy;
 
