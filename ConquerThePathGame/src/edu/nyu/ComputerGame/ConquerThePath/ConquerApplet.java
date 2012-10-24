@@ -100,11 +100,11 @@ public class ConquerApplet extends GamePlatform
 
         // load sounds
         try {
-            attackClip = loadSound(soundPath+"attack_edit.au");
-            diceClip = loadSound(soundPath+"dice_edit.au");
-            battleWinClip = loadSound(soundPath+"battlewin_edit16.au");
-            battleLoseClip = loadSound(soundPath+"battlelose_edit.au");
-            winClip = loadSound(soundPath+"win_edit.au");
+            attackClip = loadSound(soundPath+"attack_edit.au", 29816);
+            diceClip = loadSound(soundPath+"dice_edit.au", 71164);
+            battleWinClip = loadSound(soundPath+"battlewin_edit16.au", 129684);
+            battleLoseClip = loadSound(soundPath+"battlelose_edit.au", 24836);
+            winClip = loadSound(soundPath+"win_edit.au", 136068);
         }
         catch (MalformedURLException e) {
             e.printStackTrace();
@@ -636,11 +636,33 @@ public class ConquerApplet extends GamePlatform
         return true;
     }
 
-    Clip loadSound(String url) throws MalformedURLException {
+    Clip loadSound(String url, int size) throws MalformedURLException {
         Clip clip = null;
         try {
-            clip = AudioSystem.getClip();
-            clip.open(AudioSystem.getAudioInputStream(new URL(url)));
+            AudioInputStream ais;
+            do {
+                clip = AudioSystem.getClip();
+                ais = AudioSystem.getAudioInputStream(new URL(url));
+                int lastAvail = 0;
+                int waited = 0;
+                while (ais.available() < size-24) {
+                    /* wait */
+                    if (ais.available() > lastAvail)
+                    {
+                        lastAvail = ais.available();
+                        System.out.println(url + ": " + lastAvail);
+                        waited=0;
+                    }
+                    Thread.sleep(100);
+                    waited ++;
+                    if (waited > 20) {
+                        System.out.println("timeout, retry");
+                        break;
+                    }
+                }
+            } while (ais.available() < size-24);
+            clip.open(ais);
+            System.out.println(url + " loaded");
         }
         catch (Exception e) {
             System.err.println("error on " + url);
