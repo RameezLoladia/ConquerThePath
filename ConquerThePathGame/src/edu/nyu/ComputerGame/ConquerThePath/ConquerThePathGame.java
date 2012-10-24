@@ -25,9 +25,9 @@ public class ConquerThePathGame {
 		for(int i=0;i<board.length;i++){
 			for(int j=0;j<board[0].length;j++){
 				int r= new Random().nextInt(100)%2;
-				//if(r==0)
-				//	board[i][j].setOwner(Player.ComputerPlayer);
-				//else
+				if(r==0)
+					board[i][j].setOwner(Player.ComputerPlayer);
+				else
 					board[i][j].setOwner(Player.OtherPlayer);
 
 			}
@@ -94,7 +94,7 @@ public class ConquerThePathGame {
 	// Validates a attack that it can be carried only on adjacent 4 cells i.e 4 connectivity
 	public boolean validateAttack(int row1,int col1,int row2,int col2){
 		double d = Math.sqrt(Math.pow(row1-row2,2)+Math.pow(col1-col2, 2));
-		if(d>1 || board[row1][col1].getOwner() == board[row2][col2].getOwner()){
+		if(d>1){
 			return false;
 		}
 		else{
@@ -124,9 +124,11 @@ public class ConquerThePathGame {
 				
 		}
 		//Redistribution of dies
-		int split=(board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2;
-		board[row1][col1].setNoOfDies(split);
-		board[row2][col2].setNoOfDies(split);
+		int d1 = board[row1][col1].getNoOfDies();
+		int d2 = board[row2][col2].getNoOfDies();
+		int dd = (d1+d2)/2;
+		board[row1][col1].setNoOfDies(dd);
+		board[row2][col2].setNoOfDies(dd);
 	}
 	
 	// Returns a list of die roll output
