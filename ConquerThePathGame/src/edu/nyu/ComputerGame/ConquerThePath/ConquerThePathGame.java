@@ -102,9 +102,30 @@ public class ConquerThePathGame {
 		}
 	}
 	// Conquer the territory
-	public void attack(int row1,int col1,int row2,int col2)
+	public void attack(int row1,int col1,int row2,int col2,ArrayList<Integer> diesRollResult1,ArrayList<Integer> diesRollResult2)
 	{
-		board[row2][col2].setOwner(board[row1][col1].getOwner());
+		int sum1=0,sum2 = 0;
+		for(Integer i: diesRollResult1)
+			sum1 = sum1+i;
+		for(Integer i: diesRollResult2)
+			sum2 = sum2+i;
+		
+		if (sum1>sum2)
+			board[row2][col2].setOwner(board[row1][col1].getOwner());
+		else if(sum2>sum1)
+			board[row1][col1].setOwner(board[row2][col2].getOwner());
+		else //tie
+		{
+			int k = new Random().nextInt(100)%2;
+			if (k==0)
+				board[row2][col2].setOwner(board[row1][col1].getOwner());
+			else
+				board[row1][col1].setOwner(board[row2][col2].getOwner());
+				
+		}
+		//Redistribution of dies
+		board[row1][col1].setNoOfDies((board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2);
+		board[row2][col2].setNoOfDies((board[row1][col1].getNoOfDies()+board[row2][col2].getNoOfDies())/2);
 	}
 	
 	// Returns a list of die roll output
