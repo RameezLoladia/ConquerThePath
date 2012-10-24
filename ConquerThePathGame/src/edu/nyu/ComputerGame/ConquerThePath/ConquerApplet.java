@@ -335,8 +335,8 @@ public class ConquerApplet extends GamePlatform
 
         int xmin = pXmin(x);
         int ymin = pYmin(y);
-        int xmax = (int)((pXmax(x)-xmin)*scale+xmin);
-        int ymax = (int)((pYmax(y)-ymin)*scale+ymin);
+        int xmax = (int)Math.ceil((pXmax(x)-xmin)*scale+xmin);
+        int ymax = (int)Math.ceil((pYmax(y)-ymin)*scale+ymin);
 
         g.drawImage(grass, xmin, ymin, xmax, ymax,
                            (x%2)*32,(y%2)*32,(x%2+1)*32,(y%2+1)*32,this);
