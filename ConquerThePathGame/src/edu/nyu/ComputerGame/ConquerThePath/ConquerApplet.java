@@ -528,6 +528,21 @@ public class ConquerApplet extends GamePlatform
         }
     }
 
+    void undo() {
+        switch (selectMode) {
+            case ATTACKER_MODE:
+                break;
+            case ATTACKEE_MODE:
+                selectMode = ATTACKER_MODE;
+                break;
+            case BATTLE_MODE:
+                break;
+            case WON_MODE:
+                break;
+        }
+
+    }
+
     // **** mouse interface
     public void mouseAt(int x, int y) {
         mouseOverX = p2gX(x);
@@ -560,6 +575,14 @@ public class ConquerApplet extends GamePlatform
         }
 
         selectAt(gx,gy);
+
+        return true;
+    }
+
+    public boolean keyDown(Event e, int key) {
+        if (key == 27 || key == 8) {
+            undo();
+        }
 
         return true;
     }
