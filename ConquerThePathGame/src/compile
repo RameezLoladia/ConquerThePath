@@ -1,3 +1,4 @@
 #!/bin/sh
 
 javac edu/nyu/ComputerGame/ConquerThePath/*.java simpleGamePlatform/*.java
+jar cvf ConquerApplet.jar simpleGamePlatform/*.class edu/nyu/ComputerGame/ConquerThePath/*.class images/*.gif sounds/*.au

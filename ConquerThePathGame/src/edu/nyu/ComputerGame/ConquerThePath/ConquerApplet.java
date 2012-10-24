@@ -1,8 +1,6 @@
 package edu.nyu.ComputerGame.ConquerThePath;
 
 import java.util.ArrayList;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.awt.*;
 import javax.sound.sampled.*;
 import simpleGamePlatform.*;
@@ -67,20 +65,12 @@ public class ConquerApplet extends GamePlatform
         winFont = new Font("Sans Serif", Font.BOLD, 24);
 
         // load images
-        String mainPath="http://gashlin.net/games/cg12/ConquerThePath/";
-        String imgPath=new String(mainPath);
-        String soundPath=mainPath+"sounds/";
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         MediaTracker tracker = new MediaTracker(this);
-        try {
-            grass = toolkit.createImage(new URL(imgPath+"64x64grass.gif"));
-            playerFlag = toolkit.createImage(new URL(imgPath+"32x32redflag.gif"));
-            computerFlag = toolkit.createImage(new URL(imgPath+"32x32yellowflag.gif"));
-            pathImg = toolkit.createImage(new URL(imgPath+"32x32path.gif"));
-        }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        grass = toolkit.createImage(getClass().getResource("/images/64x64grass.gif"));
+        playerFlag = toolkit.createImage(getClass().getResource("/images/32x32redflag.gif"));
+        computerFlag = toolkit.createImage(getClass().getResource("/images/32x32yellowflag.gif"));
+        pathImg = toolkit.createImage(getClass().getResource("/images/32x32path.gif"));
 
         // load images
         tracker.addImage(grass, 0);
@@ -99,16 +89,11 @@ public class ConquerApplet extends GamePlatform
         }
 
         // load sounds
-        try {
-            attackClip = loadSound(soundPath+"attack_edit.au", 29816);
-            diceClip = loadSound(soundPath+"dice_edit.au", 71164);
-            battleWinClip = loadSound(soundPath+"battlewin_edit16.au", 129684);
-            battleLoseClip = loadSound(soundPath+"battlelose_edit.au", 24836);
-            winClip = loadSound(soundPath+"win_edit.au", 136068);
-        }
-        catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        attackClip = loadSound("attack_edit.au");
+        diceClip = loadSound("dice_edit.au");
+        battleWinClip = loadSound("battlewin_edit16.au");
+        battleLoseClip = loadSound("battlelose_edit.au");
+        winClip = loadSound("win_edit.au");
 
         //
         battleResults0 = null;
@@ -636,36 +621,17 @@ public class ConquerApplet extends GamePlatform
         return true;
     }
 
-    Clip loadSound(String url, int size) throws MalformedURLException {
+    Clip loadSound(String filename) {
         Clip clip = null;
         try {
             AudioInputStream ais;
-            do {
-                clip = AudioSystem.getClip();
-                ais = AudioSystem.getAudioInputStream(new URL(url));
-                int lastAvail = 0;
-                int waited = 0;
-                while (ais.available() < size-24) {
-                    /* wait */
-                    if (ais.available() > lastAvail)
-                    {
-                        lastAvail = ais.available();
-                        System.out.println(url + ": " + lastAvail);
-                        waited=0;
-                    }
-                    Thread.sleep(100);
-                    waited ++;
-                    if (waited > 20) {
-                        System.out.println("timeout, retry");
-                        break;
-                    }
-                }
-            } while (ais.available() < size-24);
+            clip = AudioSystem.getClip();
+            ais = AudioSystem.getAudioInputStream(getClass().getResource("/sounds/"+filename));
             clip.open(ais);
-            System.out.println(url + " loaded");
+            System.out.println(filename + " loaded");
         }
         catch (Exception e) {
-            System.err.println("error on " + url);
+            System.err.println("error on " + filename);
             e.printStackTrace();
         }
         return clip;
