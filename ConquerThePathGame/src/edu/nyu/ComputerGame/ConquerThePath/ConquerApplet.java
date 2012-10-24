@@ -488,13 +488,14 @@ public class ConquerApplet extends GamePlatform
                     attackeeX = gx;
                     attackeeY = gy;
 
-                    // begin the attack
-                    selectMode = BATTLE_MODE;
-                    animT = 0;
-                    // save territory status to only redraw after battle
-                    {
-                        Territory t0 = game.getTerritory(attackerY, attackerX);
-                        Territory t1 = game.getTerritory(attackeeY, attackeeX);
+                    Territory t0 = game.getTerritory(attackerY, attackerX);
+                    Territory t1 = game.getTerritory(attackeeY, attackeeX);
+
+                    if (t0.getOwner() != t1.getOwner()) {
+                        // begin the attack
+                        selectMode = BATTLE_MODE;
+                        animT = 0;
+
                         diceTime = Math.max(t0.getNoOfDies(), t1.getNoOfDies())*DICE_APPEAR_TIME;
 
                         battleResults0 = game.rollDies(attackerY, attackerX);
