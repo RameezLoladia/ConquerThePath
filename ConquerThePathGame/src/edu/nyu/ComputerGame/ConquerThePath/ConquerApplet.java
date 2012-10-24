@@ -28,6 +28,9 @@ public class ConquerApplet extends GamePlatform
     static final int BATTLE_MODE = 3; // battle animation
 
     double animT;   // battle animation timer
+    double diceTime;
+    static final double BATTLE_ZOOM = 6.5;
+    static final double DICE_APPEAR_TIME = 0.7;
     int [][] battleResults;
 
     //
@@ -103,96 +106,106 @@ public class ConquerApplet extends GamePlatform
                 }
                 break;
             case BATTLE_MODE:
-                if (animT <= 2) {
-                    double localT = animT/2;
+                {
+                    double zoomT, diceT;
+                    boolean frontHorizontal = (attackerX == attackeeX);
+
+                    drawBoard(g);
+
+                    if (animT <= 2) {
+                        zoomT = animT/2;
+                    }
+                    else if (animT > 2 && animT < 2+diceTime+4) {
+                        zoomT = 1.0;
+                    }
+                    else if (animT >= 2+diceTime+4 && animT < 2+diceTime+6) {
+                        zoomT = 1-((animT-(2+diceTime+4))/2);
+                    }
+                    else {
+                        zoomT = -1;
+                    }
 
                     // zoom into the contested territories
-                    drawBoard(g);
+                    int[] trans = null;
 
+                    if (zoomT >= 0)
                     {
-                        int trans[] = setupZoom(localT, 6.5);
+                        trans = setupZoom(zoomT, BATTLE_ZOOM);
 
                         g.translate(trans[0], trans[1]);
-                        drawTerritory(g, attackerX, attackerY, 1+localT*5.5);
+                        drawTerritory(g, attackerX, attackerY, 1+zoomT*(BATTLE_ZOOM-1));
                         g.translate(-trans[0], -trans[1]);
 
                         g.translate(trans[2], trans[3]);
-                        drawTerritory(g, attackeeX, attackeeY, 1+localT*5.5);
+                        drawTerritory(g, attackeeX, attackeeY, 1+zoomT*(BATTLE_ZOOM-1));
                         g.translate(-trans[2], -trans[3]);
                     }
 
-                } else if (animT >= 2 && animT < 4) {
-                    double localT = (animT-2)/2.0;
+                    if (animT >= 2 && animT < 2+diceTime) {
+                        diceT = (animT-2)/DICE_APPEAR_TIME;
 
-                    // really do the battle
-                    if (battleResults == null) {
-                    game.attack(attackerY, attackerX, attackeeY, attackeeX);
+                        // really do the battle (not shown immediately)
+                        if (battleResults == null) {
+                            game.attack(attackerY, attackerX, attackeeY, attackeeX);
 
-                        battleResults = new int[2][3];
-                        battleResults[0][0] = 1;
-                        battleResults[0][1] = 2;
-                        battleResults[0][2] = 3;
-                        battleResults[1][0] = 4;
-                        battleResults[1][1] = 5;
-                        battleResults[1][2] = 6;
+                            // dummy battleResults until we get something real from attack()
+                            battleResults = new int[2][];
+                            battleResults[0] = new int[3];
+                            battleResults[0][0] = 1;
+                            battleResults[0][1] = 2;
+                            battleResults[0][2] = 3;
+                            battleResults[1] = new int[4];
+                            battleResults[1][0] = 4;
+                            battleResults[1][1] = 5;
+                            battleResults[1][2] = 6;
+                            battleResults[1][3] = 3;
+                        }
+                    } else if (animT >= 2+diceTime && animT < 2+diceTime+4) {
+                        diceT = Math.max(battleResults[0].length, battleResults[1].length);
+                    } else {
+                        diceT = -1;
                     }
 
-                    //
-                    drawBoard(g);
+                    if (diceT >= 0) {
+                        // "drop" dice sequentially
 
-                    {
-                        int trans[] = setupZoom(1.0, 6.5);
-
-                        // show dice
-                        for (int i = 0; i < battleResults[0].length; i++) {
-                            drawDie(g, XMARGIN+i*32, getHeight()-YMARGIN/2, battleResults[0][i]);
-                        }
-                        for (int i = 0; i < battleResults[1].length; i++) {
-                            drawDie(g, getWidth()-(XMARGIN+i*32), getHeight()-YMARGIN/2, battleResults[1][i]);
-                        }
-
-                        if (animT < 3) {
-                            g.translate(trans[0], trans[1]);
-                            drawTerritory(g, attackerT, attackerX, attackerY, 6.5);
-                            g.translate(-trans[0], -trans[1]);
-
-                            g.translate(trans[2], trans[3]);
-                            drawTerritory(g, attackeeT, attackeeX, attackeeY, 6.5);
-                            g.translate(-trans[2], -trans[3]);
-                        }
-                        else {
-                            g.translate(trans[0], trans[1]);
-                            drawTerritory(g, attackerX, attackerY, 6.5);
-                            g.translate(-trans[0], -trans[1]);
-
-                            g.translate(trans[2], trans[3]);
-                            drawTerritory(g, attackeeX, attackeeY, 6.5);
-                            g.translate(-trans[2], -trans[3]);
+                        // attacker's dice
+                        int x,y;
+                        double spacing;
+                        x = trans[0]+pXmin(attackerX);
+                        y = trans[1]+pYmin(attackerY);
+                        spacing = 32*BATTLE_ZOOM/(battleResults[0].length+1);
+                        for (int i = 0; i <= diceT && i < battleResults[0].length; i++) {
+                            int x2=x, y2=y;
+                            if (frontHorizontal) {
+                                x2 += (i+1)*spacing;
+                                y2 += BATTLE_ZOOM*32/2;
+                            } else {
+                                y2 += (i+1)*spacing;
+                                x2 += BATTLE_ZOOM*32/2;
+                            }
+                            drawDie(g, x2, y2, battleResults[0][i]);
                         }
 
-                    }
-
+                        // attackee's dice
+                        x = trans[2]+pXmin(attackeeX);
+                        y = trans[3]+pYmin(attackeeY);
+                        spacing = 32*BATTLE_ZOOM/(battleResults[1].length+1);
+                        for (int i = 0; i <= diceT && i < battleResults[1].length; i++) {
+                            int x2=x, y2=y;
+                            if (frontHorizontal) {
+                                x2 += (i+1)*spacing;
+                                y2 += BATTLE_ZOOM*32/2;
+                            } else {
+                                y2 += (i+1)*spacing;
+                                x2 += BATTLE_ZOOM*32/2;
+                            }
+                            drawDie(g, x2, y2, battleResults[1][i]);
+                        }
+                    }   // end if draw dice
                 }
-                else if (animT >= 4 && animT < 6) {
-                    double localT = (animT-4)/2;
 
-                    // zoom out
-                    drawBoard(g);
-
-                    {
-                        int trans[] = setupZoom(1-localT, 6.5);
-
-                        g.translate(trans[0], trans[1]);
-                        drawTerritory(g, attackerX, attackerY, 1+(1-localT)*5.5);
-                        g.translate(-trans[0], -trans[1]);
-
-                        g.translate(trans[2], trans[3]);
-                        drawTerritory(g, attackeeX, attackeeY, 1+(1-localT)*5.5);
-                        g.translate(-trans[2], -trans[3]);
-                    }
-
-                }
-                else if (animT >= 6)
+                if (animT >= 2+diceTime+6)
                 {
                     battleResults = null;
                     attackerT = null;
@@ -448,6 +461,7 @@ public class ConquerApplet extends GamePlatform
                         Territory t1 = game.getTerritory(attackeeY, attackeeX);
                         attackerT = new Territory(t0.isPath(), t0.getOwner(), t0.getNoOfDies());
                         attackeeT = new Territory(t1.isPath(), t1.getOwner(), t1.getNoOfDies());
+                        diceTime = Math.max(t0.getNoOfDies(), t1.getNoOfDies())*DICE_APPEAR_TIME;
                     }
                 }
                 break;
