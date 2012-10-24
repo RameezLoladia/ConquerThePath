@@ -7,7 +7,7 @@ public class ConquerApplet extends GamePlatform
 {
     ConquerThePathGame game;
 
-    Font infoFont;
+    Font infoFont, winFont;
     Image grass, playerFlag, computerFlag, pathImg;
 
     int dimX, dimY, sqX, sqY;
@@ -52,6 +52,7 @@ public class ConquerApplet extends GamePlatform
         game.initialize();
 
         infoFont = new Font("Serif", Font.PLAIN, 12);
+        winFont = new Font("Sans Serif", Font.BOLD, 24);
 
         // load images
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -218,7 +219,7 @@ public class ConquerApplet extends GamePlatform
                 drawBoard(g);
 
                 g.setColor(Color.green);
-                g.setFont(new Font("Sans Serif", Font.BOLD, 24));
+                g.setFont(winFont);
                 g.drawString("You Win!", 140, 30);
                 break;
         }
