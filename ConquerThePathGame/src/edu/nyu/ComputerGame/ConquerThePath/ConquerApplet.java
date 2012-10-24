@@ -31,7 +31,8 @@ public class ConquerApplet extends GamePlatform
     double diceTime;
     static final double BATTLE_ZOOM = 6.5;
     static final double DICE_APPEAR_TIME = 0.7;
-    int [][] battleResults;
+    Integer [][] battleResults;
+    boolean didAttack;
 
     //
     public void init() {
@@ -144,22 +145,6 @@ public class ConquerApplet extends GamePlatform
                     if (animT >= 2 && animT < 2+diceTime) {
                         diceT = (animT-2)/DICE_APPEAR_TIME;
 
-                        // really do the battle (not shown immediately)
-                        if (battleResults == null) {
-                            game.attack(attackerY, attackerX, attackeeY, attackeeX);
-
-                            // dummy battleResults until we get something real from attack()
-                            battleResults = new int[2][];
-                            battleResults[0] = new int[3];
-                            battleResults[0][0] = 1;
-                            battleResults[0][1] = 2;
-                            battleResults[0][2] = 3;
-                            battleResults[1] = new int[4];
-                            battleResults[1][0] = 4;
-                            battleResults[1][1] = 5;
-                            battleResults[1][2] = 6;
-                            battleResults[1][3] = 3;
-                        }
                     } else if (animT >= 2+diceTime && animT < 2+diceTime+4) {
                         diceT = Math.max(battleResults[0].length, battleResults[1].length);
                     } else {
@@ -203,6 +188,14 @@ public class ConquerApplet extends GamePlatform
                             drawDie(g, x2, y2, battleResults[1][i]);
                         }
                     }   // end if draw dice
+
+                    if (animT >= 2+diceTime+2) {
+                        // really do the battle!
+                        if (!didAttack) {
+                            game.attack(attackerY, attackerX, attackeeY, attackeeX);
+                            didAttack = true;
+                        }
+                    }
                 }
 
                 if (animT >= 2+diceTime+6)
@@ -462,6 +455,18 @@ public class ConquerApplet extends GamePlatform
                         attackerT = new Territory(t0.isPath(), t0.getOwner(), t0.getNoOfDies());
                         attackeeT = new Territory(t1.isPath(), t1.getOwner(), t1.getNoOfDies());
                         diceTime = Math.max(t0.getNoOfDies(), t1.getNoOfDies())*DICE_APPEAR_TIME;
+
+                        java.util.ArrayList<Integer> al0 = game.rollDies(attackerY, attackerX);
+                        java.util.ArrayList<Integer> al1 = game.rollDies(attackeeY, attackeeX);
+                        
+                        battleResults = new Integer[2][];
+                        battleResults[0] = new Integer[al0.size()];
+                        battleResults[1] = new Integer[al1.size()];
+
+                        battleResults[0] = al0.toArray(battleResults[0]);
+                        battleResults[1] = al1.toArray(battleResults[1]);
+
+                        didAttack = false;
                     }
                 }
                 break;
